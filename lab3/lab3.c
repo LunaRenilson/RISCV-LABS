@@ -92,7 +92,6 @@ void complemento2(char *valor, char *dec)
      }
 
      dec[11] = '\n';
-     dec[12] = '\0';
 }
 
 void decimalUnsigned(char *valor, char *decUns)
@@ -118,8 +117,7 @@ void decimalUnsigned(char *valor, char *decUns)
           total /= 10;
      }
 
-     decUns[12] = '\n';
-     decUns[12] = '\0';
+     decUns[11] = '\n';
 }
 
 void hexadecimal(char *valor, char hex[])
@@ -131,7 +129,6 @@ void hexadecimal(char *valor, char hex[])
      hex[0] = '0';
      hex[1] = 'x';
      hex[10] = '\n';
-     hex[11] = '\0';
 
      for (int i = 0; i < 32; i++)
      {
@@ -189,13 +186,12 @@ void octal(char *valor, char oct[])
           oct[j++] = '0' + trio;
      }
 
-     oct[j++] = '\n';
-     oct[j++] = '\0';
+     oct[13] = '\n';
 }
 
 void imprimirBinario(char *valor)
 {
-     char bin[37];
+     char bin[35];
      bin[0] = '0';
      bin[1] = 'b';
      int i, j;
@@ -203,10 +199,9 @@ void imprimirBinario(char *valor)
      {
           bin[i] = valor[j];
      }
-     bin[i++] = '\n';
-     bin[i++] = '\0';
+     bin[34] = '\n';
 
-     write(STDOUT_FD, bin, 37);
+     write(STDOUT_FD, bin, 35);
 }
 
 void decimalEndianness(char *valor, char *decEnd)
@@ -258,7 +253,6 @@ void decimalEndianness(char *valor, char *decEnd)
      }
 
      decEnd[11] = '\n';
-     decEnd[12] = '\0';
 }
 
 void hexadecimalEndianness(char *valor, char hex[])
@@ -270,7 +264,6 @@ void hexadecimalEndianness(char *valor, char hex[])
      hex[0] = '0';
      hex[1] = 'x';
      hex[10] = '\n';
-     hex[11] = '\0';
 
      for (int i = 0; i < 32; i++)
      {
@@ -341,7 +334,6 @@ void octalEndianness(char *valor, char oct[])
      }
 
      oct[j++] = '\n';
-     oct[j++] = '\0';
 }
 
 int main()
@@ -349,14 +341,14 @@ int main()
 
      char str[33];
      int n = read(STDIN_FD, str, 33);
-     
-     char dec[13];
-     char decUns[13];
-     char hex[12];
-     char oct[15];
-     char decEnd[13];
-     char hexEnd[12];
-     char octEnd[15];
+
+     char dec[12];
+     char decUns[12];
+     char hex[11];
+     char oct[14];
+     char decEnd[12];
+     char hexEnd[11];
+     char octEnd[14];
 
      complemento2(str, dec);
      decimalUnsigned(str, decUns);
@@ -374,15 +366,29 @@ int main()
      // printf("%s", decEnd);
      // printf("%s", hexEnd);
      // printf("%s", octEnd);
+     char quebra[1] = "\n";
+     write(STDOUT_FD, dec, 12);
+     write(STDOUT_FD, quebra, 1);
 
-     write(STDOUT_FD, dec, 13); 
-     write(STDOUT_FD, decUns, 13);
-     write(STDOUT_FD, hex, 12);
-     write(STDOUT_FD, oct, 15);
+     write(STDOUT_FD, decUns, 12);
+     write(STDOUT_FD, quebra, 1);
+
+     write(STDOUT_FD, hex, 11);
+     write(STDOUT_FD, quebra, 1);
+
+     write(STDOUT_FD, quebra, 1);
+     write(STDOUT_FD, oct, 14);
+
      imprimirBinario(str);
+
      write(STDOUT_FD, decEnd, 12);
-     write(STDOUT_FD, hexEnd, 12);
-     write(STDOUT_FD, octEnd, 15);
+     write(STDOUT_FD, quebra, 1);
+
+     write(STDOUT_FD, hexEnd, 11);
+     write(STDOUT_FD, quebra, 1);
+
+     write(STDOUT_FD, octEnd, 14);
+     write(STDOUT_FD, quebra, 1);
 
      return 0;
 }
