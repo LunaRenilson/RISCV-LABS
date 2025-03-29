@@ -1,102 +1,118 @@
-int read(int __fd, const void *__buf, int __n){
-     int ret_val;
-   __asm__ __volatile__(
-     "mv a0, %1           # file descriptor\n"
-     "mv a1, %2           # buffer \n"
-     "mv a2, %3           # size \n"
-     "li a7, 63           # syscall write code (63) \n"
-     "ecall               # invoke syscall \n"
-     "mv %0, a0           # move return value to ret_val\n"
-     : "=r"(ret_val)  // Output list
-     : "r"(__fd), "r"(__buf), "r"(__n)    // Input list
-     : "a0", "a1", "a2", "a7"
-   );
-   return ret_val;
- }
- 
- void write(int __fd, const void *__buf, int __n)
- {
-   __asm__ __volatile__(
-     "mv a0, %0           # file descriptor\n"
-     "mv a1, %1           # buffer \n"
-     "mv a2, %2           # size \n"
-     "li a7, 64           # syscall write (64) \n"
-     "ecall"
-     :   // Output list
-     :"r"(__fd), "r"(__buf), "r"(__n)    // Input list
-     : "a0", "a1", "a2", "a7"
-   );
- }
- 
- void exit(int code)
- {
-   __asm__ __volatile__(
-     "mv a0, %0           # return code\n"
-     "li a7, 93           # syscall exit (64) \n"
-     "ecall"
-     :   // Output list
-     :"r"(code)    // Input list
-     : "a0", "a7"
-   );
- }
- 
- void _start()
- {
-   int ret_code = main();
-   exit(ret_code);
- }
- 
- #define STDIN_FD  0
- #define STDOUT_FD 1
-
-void complemento2(char *valor, char *dec)
+int read(int __fd, const void *__buf, int __n)
 {
+     int ret_val;
+     __asm__ __volatile__(
+         "mv a0, %1           # file descriptor\n"
+         "mv a1, %2           # buffer \n"
+         "mv a2, %3           # size \n"
+         "li a7, 63           # syscall write code (63) \n"
+         "ecall               # invoke syscall \n"
+         "mv %0, a0           # move return value to ret_val\n"
+         : "=r"(ret_val)                   // Output list
+         : "r"(__fd), "r"(__buf), "r"(__n) // Input list
+         : "a0", "a1", "a2", "a7");
+     return ret_val;
+}
+
+void write(int __fd, const void *__buf, int __n)
+{
+     __asm__ __volatile__(
+         "mv a0, %0           # file descriptor\n"
+         "mv a1, %1           # buffer \n"
+         "mv a2, %2           # size \n"
+         "li a7, 64           # syscall write (64) \n"
+         "ecall"
+         :                                 // Output list
+         : "r"(__fd), "r"(__buf), "r"(__n) // Input list
+         : "a0", "a1", "a2", "a7");
+}
+
+void exit(int code)
+{
+     __asm__ __volatile__(
+         "mv a0, %0           # return code\n"
+         "li a7, 93           # syscall exit (64) \n"
+         "ecall"
+         :           // Output list
+         : "r"(code) // Input list
+         : "a0", "a7");
+}
+
+void _start()
+{
+     int ret_code = main();
+     exit(ret_code);
+}
+
+#define STDIN_FD 0
+#define STDOUT_FD 1
+
+void complemento2(char *valor){   
+
+     char dec[10];
      int negativo = (valor[0] == '1');
      int total = 0;
+     int inicio = 0;
+     int casasDecimais = 0;
 
      if (negativo)
      {
-          for (int i = 31; i >= 0; i--)
+          for (int i = 31; i >= 1; i--)
           {
                // Convertendo em inteiro
-               int bitAntes = valor[i] - '0';
-               // Convertendo para complemento de dois
-               int bitDepois = (bitAntes == 0) ? 1 : 0;
+               int bit = valor[i] - '0';
 
                // Convertendo para binário
-               total += bitDepois * (1 << (31 - i));
+               total += bit * (1 << (31 - i));
           }
-          total = (total * -1) - 1;
+
+          // subtraindo digito do complemento de dois e transformando em negativo
+          int tmp = total;
+          total = (~total) + 1;
+          dec[0] = '-';
+          inicio = 1;
+
+          while (tmp > 0)
+          {
+               tmp /= 10;
+               casasDecimais++;
+          }
      }
      else
      {
-          for (int i = 31; i >= 0; i--)
+          for (int i = 31; i >= 1; i--)
           {
                // Convertendo em inteiro
                int bit = valor[i] - '0';
                total += bit * (1 << (31 - i));
           }
+          int tmp = total;
+
+          while (tmp > 0)
+          {
+               tmp /= 10;
+               casasDecimais++;
+          }
      }
 
-     if (negativo)
-     {
-          dec[0] = '-';
-          total = total * (-1);
-     }
-
+     casasDecimais += inicio;
      // convertendo pra string do final pro começo
-     for (int i = 0; total > 0; i++)
+     for (int i = inicio; i < casasDecimais; i++)
      {
-          dec[10 - i] = (total % 10) + '0';
+          int digito = (total % 10);
+          // if (digito == 0) continue;
+
+          dec[casasDecimais - i] = digito + '0';
           total /= 10;
      }
 
-     dec[11] = '\n';
+     write(STDOUT_FD, dec, casasDecimais + 1);
 }
 
-void decimalUnsigned(char *valor, char *decUns)
+void decimalUnsigned(char *valor)
 {
      unsigned int total = 0;
+     char decUns[11];
 
      for (int i = 0; i < 32; i++)
      {
@@ -116,19 +132,18 @@ void decimalUnsigned(char *valor, char *decUns)
           decUns[9 - i] = (total % 10) + '0';
           total /= 10;
      }
-
-     decUns[11] = '\n';
+     write(STDOUT_FD, decUns, 11);
 }
 
-void hexadecimal(char *valor, char hex[])
+void hexadecimal(char *valor)
 {
      unsigned int total = 0;
      int posicao = 2;
      int encontrouDigito = 0;
 
+     char hex[10];
      hex[0] = '0';
      hex[1] = 'x';
-     hex[10] = '\n';
 
      for (int i = 0; i < 32; i++)
      {
@@ -157,10 +172,13 @@ void hexadecimal(char *valor, char hex[])
                hex[posicao++] = 'a' + (half - 10);
           }
      }
+
+     write(STDOUT_FD, hex, posicao);
 }
 
-void octal(char *valor, char oct[])
+void octal(char *valor)
 {
+     char oct[13];
      oct[0] = '0';
      oct[1] = 'o';
 
@@ -173,6 +191,11 @@ void octal(char *valor, char oct[])
           total = (total << 1) | bit; // Desloca o total para a esquerda e adiciona o bit
      }
 
+     if (total == 0)
+     {
+          oct[j++] = '0';
+     }
+
      for (int i = 30; i >= 0; i -= 3)
      {
           unsigned int trio = (total >> i) & 0x7; // Obtendo 3 bits do total
@@ -182,32 +205,53 @@ void octal(char *valor, char oct[])
           {
                continue;
           }
+
           encontrouDigito = 1;
           oct[j++] = '0' + trio;
      }
-
-     oct[13] = '\n';
+     write(STDOUT_FD, oct, j);
 }
 
-void imprimirBinario(char *valor)
+void binario(char *valor)
 {
-     char bin[35];
+     char bin[34];
+
+     // Inicializando vetor com zeros
+     for (int i = 0; i < 34; i++)
+     {
+          bin[i] = 0;
+     }
+
      bin[0] = '0';
      bin[1] = 'b';
-     int i, j;
-     for (i = 2, j = 0; i < 34; i++, j++)
-     {
-          bin[i] = valor[j];
-     }
-     bin[34] = '\n';
+     int encontrouDigito = 0;
+     int j = 2;
 
-     write(STDOUT_FD, bin, 35);
+     for (int byte = 3; byte >= 0; byte--) { // 4 bytes (32 bits)
+          for (int bit = 0; bit < 8; bit++)
+          {
+               char valorAtual = valor[(byte * 8) + bit];
+               if (!encontrouDigito && valorAtual == '0'){
+                    continue;
+               }
+               encontrouDigito = 1;
+               bin[j++] = valorAtual;
+          }
+     }
+
+     if (!encontrouDigito){
+          bin[j++] = '0';
+     }
+
+     write(STDOUT_FD, bin, j);
 }
 
-void decimalEndianness(char *valor, char *decEnd)
+void decimalEndianness(char *valor)
 {
+     char decEnd[11];
      int negativo = (valor[0] == '1');
      int total = 0;
+     int casasDecimais = 0;
 
      if (negativo)
      {
@@ -239,6 +283,14 @@ void decimalEndianness(char *valor, char *decEnd)
              ((total << 8) & 0xFF0000) |   // Byte 2 -> Byte 1
              ((total << 24) & 0xFF000000); // Byte 3 -> Byte 0
 
+     // Contando o numero de casas decimais para impressao
+     int tmp = total;
+     while (tmp > 0)
+     {
+          tmp /= 10;
+          casasDecimais++;
+     }
+
      if (negativo)
      {
           decEnd[0] = '-';
@@ -246,24 +298,24 @@ void decimalEndianness(char *valor, char *decEnd)
      }
 
      // convertendo pra string do final pro começo
-     for (int i = 0; total > 0; i++)
+     for (int i = 0; i < casasDecimais; i++)
      {
-          decEnd[10 - i] = (total % 10) + '0';
+          decEnd[casasDecimais - i - 1] = (total % 10) + '0';
           total /= 10;
      }
 
-     decEnd[11] = '\n';
+     write(STDOUT_FD, decEnd, casasDecimais);
 }
 
-void hexadecimalEndianness(char *valor, char hex[])
+void hexadecimalEndianness(char *valor)
 {
      unsigned int total = 0;
      int posicao = 2;
      int encontrouDigito = 0;
 
+     char hex[10];
      hex[0] = '0';
      hex[1] = 'x';
-     hex[10] = '\n';
 
      for (int i = 0; i < 32; i++)
      {
@@ -298,10 +350,12 @@ void hexadecimalEndianness(char *valor, char hex[])
                hex[posicao++] = 'a' + (half - 10);
           }
      }
+     write(STDOUT_FD, hex, 10);
 }
 
-void octalEndianness(char *valor, char oct[])
+void octalEndianness(char *valor)
 {
+     char oct[13];
      oct[0] = '0';
      oct[1] = 'o';
 
@@ -332,8 +386,7 @@ void octalEndianness(char *valor, char oct[])
           encontrouDigito = 1;
           oct[j++] = '0' + trio;
      }
-
-     oct[j++] = '\n';
+     write(STDOUT_FD, oct, j);
 }
 
 int main()
@@ -341,53 +394,30 @@ int main()
 
      char str[33];
      int n = read(STDIN_FD, str, 33);
-
-     char dec[12];
-     char decUns[12];
-     char hex[11];
-     char oct[14];
-     char decEnd[12];
-     char hexEnd[11];
-     char octEnd[14];
-
-     complemento2(str, dec);
-     decimalUnsigned(str, decUns);
-     hexadecimal(str, hex);
-     octal(str, oct);
-     decimalEndianness(str, decEnd);
-     hexadecimalEndianness(str, hexEnd);
-     octalEndianness(str, octEnd);
-
-     // printf("%s", dec);
-     // printf("%s", decUns);
-     // printf("%s", hex);
-     // printf("%s", oct);
-     // imprimirBinario(str);
-     // printf("%s", decEnd);
-     // printf("%s", hexEnd);
-     // printf("%s", octEnd);
      char quebra[1] = "\n";
-     write(STDOUT_FD, dec, 12);
+
+     complemento2(str);
      write(STDOUT_FD, quebra, 1);
 
-     write(STDOUT_FD, decUns, 12);
+     decimalUnsigned(str);
      write(STDOUT_FD, quebra, 1);
 
-     write(STDOUT_FD, hex, 11);
+     hexadecimal(str);
      write(STDOUT_FD, quebra, 1);
 
-     write(STDOUT_FD, quebra, 1);
-     write(STDOUT_FD, oct, 14);
-
-     imprimirBinario(str);
-
-     write(STDOUT_FD, decEnd, 12);
+     octal(str);
      write(STDOUT_FD, quebra, 1);
 
-     write(STDOUT_FD, hexEnd, 11);
+     binario(str);
      write(STDOUT_FD, quebra, 1);
 
-     write(STDOUT_FD, octEnd, 14);
+     decimalEndianness(str);
+     write(STDOUT_FD, quebra, 1);
+
+     hexadecimalEndianness(str);
+     write(STDOUT_FD, quebra, 1);
+
+     octalEndianness(str);
      write(STDOUT_FD, quebra, 1);
 
      return 0;
