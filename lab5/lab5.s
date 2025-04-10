@@ -1,50 +1,60 @@
-.globl _start
+.data
+simulation: .asciz "(14 37) (13 37) (12 39)"  
 
+
+.globl _start
 _start:
      jal main
 
+
+# (DD DD) (DD DD) (DD DD)\n
 main:
-     jal read
+     # jal read
 
+     la t0, simulation          # Carregando input em a0
+     lb a0, 1(t0)
+     lb a1, 2(t0)
+     
+     jal parse_two_digits 
 
-     jal write
+     # jal write
      j exit
+
+
+# Entrada: a0 e a1 (dois valores ascii)
+# Saida: a0 (int)
+parse_two_digits:
+     # Converte de ASCII para inteiro
+     addi a0, a0, -48 # Subtrai '0'
+     addi a1, a1, -48
+
+     # Calcula o valor: (dezena * 10) + unidade
+     li t0, 10
+     mul a0, a0, t0
+     add a0, t0, a1
+     ret
 
 
 # Entrada: a0
 # Saída: a0 
 # Destrói: a1, t0, t1, t2
-sqrt_babylonian:
-    li t0, 10             # 10 iterações (contador)
-    srli a1, a0, 1        # Estimativa inicial: k = y/2  
-    beqz a0, done         # Se y=0, retorna 0
+# sqrt_babylonian:
+#     li t0, 10             # 10 iterações (contador)
+#     srli a1, a0, 1        # Estimativa inicial: k = y/2  
+#     beqz a0, done         # Se y=0, retorna 0
 
-loop:
-    div t1, a0, a1        # t1 = y/k
-    add t1, a1, t1        # t1 = k + y/k
-    srli a1, t1, 1        # a1 = (k + y/k)/2 (nova estimativa)
+# loop:
+#     div t1, a0, a1        # t1 = y/k
+#     add t1, a1, t1        # t1 = k + y/k
+#     srli a1, t1, 1        # a1 = (k + y/k)/2 (nova estimativa)
     
-    addi t0, t0, -1       # Decrementa contador
-    bnez t0, loop         # Repete até 10 iterações
+#     addi t0, t0, -1       # Decrementa contador
+#     bnez t0, loop         # Repete até 10 iterações
 
-done:
-    mv a0, a1             # Move resultado para a0
-    ret                   # Retorna com a raiz em a0
+# done:
+#     mv a0, a1             # Move resultado para a0
+#     ret                   # Retorna com a raiz em a0
 
-
-parse_two_digits:
-    lbu t0, 0(a0)    # Carrega o primeiro dígito (dezena)
-    lbu t1, 1(a0)    # Carrega o segundo dígito (unidade)
-
-    # Converte de ASCII para inteiro
-    addi t0, t0, -48 # Subtrai '0'
-    addi t1, t1, -48
-
-    # Calcula o valor: (dezena * 10) + unidade
-    li t2, 10
-    mul t0, t0, t2
-    add a0, t0, t1
-    ret
 
 read:
      li a0, 0             # file descriptor = 0 (stdin)
