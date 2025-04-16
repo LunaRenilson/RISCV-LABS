@@ -7,15 +7,35 @@ _start:
      j main
 
 # Entrada: "6 4\n"
-# Entrada: "5\n"
+# Entrada: "2\n"
 main: 
      
-     li a2, 4
+     # Obtendo cateto adjascente 1
+     li a2, 6
      jal read
-     
-     la a0, input
-     li a1, 32
+
+     la a0, input            
+     li a1, 32                # ' ' (cond de parada)
      jal atoi
+
+     la t0, catetoAdj1
+     sw a0, 0(t0)             # Salvando cateto adjacente 1
+
+     # andando ate prox valor
+     la a0, input
+     li t1, 32                # t1 = ' '
+     loop_int2:
+          lb t2, 0(a0)
+          beq t1, t2, fim_loop_int2
+          addi a0, a0, 1
+          j loop_int2
+     fim_loop_int2:
+        
+     li a1, 10                # '\n' (cond de parada)
+     jal atoi
+
+     la t0, catetoOpst1
+     sw a0, 0(t0)             # Salvando cateto oposto 1
 
      la a1, resultado
      jal itoa
@@ -24,11 +44,21 @@ main:
      j exit
 
 
+     # Obtendo cateto adjacente 2
+     li a2, 3
+     jal read
+
+     la a0, input            
+     li a1, 10                # '\n' (cond de parada)
+     jal atoi
+
+     la t0, catetoAdj1
+     sw a0, 0(t0)             # Salvando cateto adjacente 2
+
+
 # Converte int em str
 # Entrada: a0 (int), a1(buffer de saída)
 itoa: 
-
-
      addi sp, sp, -32         # reserva espaço na pilha (ajustável)
      mv t0, sp
      li t1, 0                 # qtd de caracteres (contador)  
@@ -78,6 +108,7 @@ itoa:
 
 # Converte str em int
 # Entrada: a0 (string) a1 (terminador)
+# Saída: a0 (int com resultado)
 atoi:
      lb t0, 0(a0)        # Primeiro char
      li t1, 0            # Total
