@@ -1,5 +1,5 @@
-.data
-     test_string: .asciz "42 5\n"    # String 1: Número 42 seguido de espaço e 123
+# .data
+     # test_string: .asciz "42 5\n"    # String 1: Número 42 seguido de espaço e 123
 
 .globl _start
 
@@ -21,15 +21,21 @@ main:
      la t0, catetoAdj1
      sw a0, 0(t0)             # Salvando cateto adjacente 1
 
+     # la a0, catetoAdj1
+     # la a1, resultado
+     # li t0, 10                # \n
+     # lb t0, 2(a1)
+
      # andando ate prox valor
      la a0, input
      li t1, 32                # t1 = ' '
      loop_int2:
-          lb t2, 0(a0)
-          beq t1, t2, fim_loop_int2
-          addi a0, a0, 1
+          lb t2, 0(a0)        # Carregando byte
+          beq t1, t2, fim_loop_int2          # Verificando se nao é ' '
+          addi a0, a0, 1                     # prox byte
           j loop_int2
      fim_loop_int2:
+          addi a0, a0, 1
         
      li a1, 10                # '\n' (cond de parada)
      jal atoi
@@ -37,23 +43,25 @@ main:
      la t0, catetoOpst1
      sw a0, 0(t0)             # Salvando cateto oposto 1
 
-     la a1, resultado
-     jal itoa
-
-     jal write
-     j exit
-
 
      # Obtendo cateto adjacente 2
      li a2, 3
      jal read
 
+     input2:
      la a0, input            
      li a1, 10                # '\n' (cond de parada)
      jal atoi
 
-     la t0, catetoAdj1
+     fim_input2:
+     la t0, catetoAdj2
      sw a0, 0(t0)             # Salvando cateto adjacente 2
+
+
+     # Agora só calcular
+
+     j exit
+
 
 
 # Converte int em str
@@ -150,8 +158,8 @@ exit:
      ecall
 
 .bss
-     input: .skip 0x3  # buffer
-     catetoAdj1: .word
-     catetoOpst1: .word
-     catetoOpst2: .word
+     input: .skip 0x6  # buffer
+     catetoAdj1: .skip 0x2
+     catetoOpst1: .skip 0x2
+     catetoAdj2: .skip 0x2
      resultado: .skip 0x3
