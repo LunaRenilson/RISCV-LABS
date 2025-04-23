@@ -58,14 +58,25 @@ main:
      sw a0, 0(t0)             # Salvando cateto adjacente 2
 
 
-     # Agora só calcular
      # CA₂ = (CA₁ × CO₂) / CO₁
      # 1 - Multiplicar cateto adjascente 1 com cateto oposto 2
      # 2 - Dividir o resultado acima pelo cateto oposto 1
+     lw t0, catetoAdj1
+     lw t1, catetoOpst2
+     lw t2, catetoOpst1
+     la a1, resultado
+
+     mul a0, t0, t1
+     div a0, a0, t2
+
+     # valor final em a0
+     # str de saída em a1
+     # Convertendo para str
+     jal itoa
 
 
-     # Aqui, converta para string o resultado
-     
+     jal write
+
      # Imprima
      j exit
 
@@ -165,8 +176,8 @@ exit:
      ecall
 
 .bss
-     input: .skip 0x6  # buffer
-     catetoAdj1: .skip 0x2
-     catetoOpst2: .skip 0x2
-     catetoAdj2: .skip 0x2
-     resultado: .skip 0x3
+     input: .skip 32  # buffer
+     catetoAdj1: .skip 4
+     catetoOpst1: .skip 4
+     catetoOpst2: .skip 4
+     resultado: .skip 16
