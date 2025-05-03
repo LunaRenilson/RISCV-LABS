@@ -1,83 +1,7 @@
-# .data
-     # test_string: .asciz "42 5\n"    # String 1: Número 42 seguido de espaço e 123
-
 .globl _start
 
 _start:
      j main
-
-# Entrada: "6 4\n"
-# Entrada: "2\n"
-main: 
-     
-     # Obtendo cateto adjascente 1
-     li a2, 9
-     jal read
-
-     la a0, input            
-     li a1, 32                # ' ' (cond de parada)
-     jal atoi
-
-     la t0, catetoAdj1
-     sw a0, 0(t0)             # Salvando cateto adjacente 1
-
-     # andando ate prox valor
-     la a0, input
-     li t1, 32                # t1 = ' '
-     loop_int2:
-          lb t2, 0(a0)        # Carregando byte
-          beq t1, t2, fim_loop_int2          # Verificando se nao é ' '
-          addi a0, a0, 1                     # prox byte
-          j loop_int2
-     fim_loop_int2:
-          addi a0, a0, 1
-        
-     li a1, 10                # '\n' (cond de parada)
-     jal atoi
-     la t0, catetoOpst1
-     sw a0, 0(t0)             # Salvando cateto oposto 1
-
-     # Obtendo cateto oposto 2
-     la a0, input
-     li t1, 10                # t1 = \n
-     loop_cateto2:
-          lb t2, 0(a0)        # Carregando byte
-          beq t1, t2, fim_loop_cateto2          # Verificando se nao é '\n'
-          addi a0, a0, 1                     # prox byte
-          j loop_cateto2
-     fim_loop_cateto2:
-          addi a0, a0, 1
-
-     # 0(a0) deve ser o caateto      
-     li a1, 10                # '\n' (cond de parada)
-     jal atoi
-
-     la t0, catetoOpst2
-     sw a0, 0(t0)             # Salvando cateto adjacente 2
-
-
-     # CA₂ = (CA₁ × CO₂) / CO₁
-     # 1 - Multiplicar cateto adjascente 1 com cateto oposto 2
-     # 2 - Dividir o resultado acima pelo cateto oposto 1
-     lw t0, catetoAdj1
-     lw t1, catetoOpst2
-     lw t2, catetoOpst1
-     la a1, resultado
-
-     mul a0, t0, t1
-     div a0, a0, t2
-
-     # valor final em a0
-     # str de saída em a1
-     # Convertendo para str
-     jal itoa
-
-
-     jal write
-
-     # Imprima
-     j exit
-
 
 
 # Converte int em str
@@ -129,7 +53,6 @@ itoa:
           li t1, 1            # Contador de char (1, nesse caso)
           j desempilha_itoa   # Desempilhando
 
-
 # Converte str em int
 # Entrada: a0 (string) a1 (terminador)
 # Saída: a0 (int com resultado)
@@ -175,7 +98,3 @@ exit:
 
 .bss
      input: .skip 32  # buffer
-     catetoAdj1: .skip 4
-     catetoOpst1: .skip 4
-     catetoOpst2: .skip 4
-     resultado: .skip 16
