@@ -1,10 +1,98 @@
+# Entrada
+# +/- x1\n
+# +/- x2\n
+# +/- x3\n
+# a b\n
+#  --> xn = [1, 999]
+#  --> a, b = [0, 999]
+
+.data
+     coeficientes: .word 0, 0, 0
+     limites: .word 0, 0
+
+
+.text
 .globl _start
+
+
+.macro FUNC nome_funcao
+    addi sp, sp, -4       # aloca espaço na pilha
+    sw ra, 0(sp)          # salva ra (32 bits)
+    jal \nome_funcao      # chama a função passada como argumento
+    lw ra, 0(sp)          # restaura ra
+    addi sp, sp, 4        # desaloca espaço
+.endm
 
 _start:
      j main
 
-
 main:
+     jal read
+     jal obtem_coefs
+     j exit
+
+
+obtem_coefs:
+     la t0, input
+     li a1, 10           # \n (cond de parada)
+     la a2, coeficientes      
+
+     # -------------- Primeiro valor
+     lb t1, 0(t0)             # Obtendo sinal
+     li t2, 45                # '-' (sinal de menos)
+     beq t1, t2, aplica_sinal1
+     li t1, 1
+     j continua_sinal1
+     aplica_sinal1:
+          li t1, -1
+     continua_sinal1:
+
+     addi t0, t0, 1           # Pulando espaço
+     li a1, 10                # \n (temrinador)
+     mv a0, t0                # param da funcao
+     FUNC atoi                # convertendo str para int (Retorno em a0)
+     mul a0, a0, t1           # Aplicando o sinal
+     sw a0, 0(a2)             # Salvando primeiro valor em coef
+     addi t0, t0, 1           # Proximo valor
+
+     # -------------- Segundo valor
+     lb t1, 0(t0)             # Obtendo sinal
+     li t2, 45                # '-' (sinal de menos)
+     beq t1, t2, aplica_sinal2
+     li t1, 1
+     j continua_sinal2
+     aplica_sinal2:
+          li t1, -1
+     continua_sinal2:
+
+     addi t0, t0, 1           # Pulando espaço
+     li a1, 10                # \n (temrinador)
+     mv a0, t0                # param da funcao
+     FUNC atoi                # convertendo str para int (Retorno em a0)
+     mul a0, a0, t1           # Aplicando o sinal
+     sw a0, 4(a2)             # Salvando primeiro valor em coef
+     addi t0, t0, 1           # Proximo valor
+
+     # -------------- Terceiro valor
+     lb t1, 0(t0)             # Obtendo sinal
+     li t2, 45                # '-' (sinal de menos)
+     beq t1, t2, aplica_sinal3
+     li t1, 1                 # Caso nao seja negativo
+     j continua_sinal3
+     aplica_sinal3:
+          li t1, -1
+     continua_sinal3:
+
+     addi t0, t0, 1           # Pulando espaço
+     li a1, 10                # \n (temrinador)
+     mv a0, t0                # param da funcao
+     FUNC atoi                # convertendo str para int (Retorno em a0)
+     mul a0, a0, t1           # Aplicando o sinal
+     sw a0, 8(a2)             # Salvando primeiro valor em coef
+     addi t0, t0, 1           # Proximo valor
+
+fim_coefs:
+     ret
 
 
 # Converte int em str
@@ -79,16 +167,17 @@ atoi:
 # entrada: a2 (tamanho do buffer a ser lido)
 read:
      li a0, 0             # file descriptor = 0 (stdin)
-     la a1, input # buffer
+     la a1, input        # buffer
      li a7, 63            # syscall read (63)
      
      ecall
      ret
 
+# Imprime conteúdo do rótulo "resultado"
 write:
      li a0, 1            # file descriptor = 1 (stdout)
      la a1, resultado       # buffer
-     li a2, 3            # size - Writes 4 bytes.
+     li a2, 22            # size
      li a7, 64           # syscall write (64)
      ecall
      ret
@@ -101,3 +190,4 @@ exit:
 
 .bss
      input: .skip 32  # buffer
+     resultado: .skip 32

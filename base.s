@@ -98,3 +98,4 @@ exit:
 
 .bss
      input: .skip 32  # buffer
+     resultado: .skip 32
