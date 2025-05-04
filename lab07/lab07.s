@@ -14,7 +14,7 @@
 .data
      coeficientes: .word 0, 0, 0
      limites: .word 0, 0
-
+     input_teste: .asciz "+ 999\n+ 997\n+ 998\n"
 
 .text
 .globl _start
@@ -25,7 +25,7 @@
     sw ra, 0(sp)          # salva ra (32 bits)
 .endm
 .macro carrega_retorno
-    sw ra, 0(sp)          # salva ra (32 bits)
+    lw ra, 0(sp)          # salva ra (32 bits)
     addi sp, sp, 4       # aloca espaço na pilha
 .endm
 
@@ -49,13 +49,20 @@ _start:
      j main
 
 main:
-     jal read
+     # jal read
      jal obtem_coefs
+
+     voltou:
+     la t0, coeficientes
+     lw t1, 0(t0)
+     lw t2, 4(t0)
+     lw t3, 8(t0)
+
      j exit
 
 
 obtem_coefs:
-     la t0, input
+     la t0, input_teste
      li a1, 10           # \n (cond de parada)
      la a2, coeficientes
 
@@ -83,6 +90,7 @@ obtem_coefs:
 
      # -------------- Segundo valor
      lb t1, 0(t0)             # Obtendo sinal
+
      li t2, 45                # '-' (sinal de menos)
      beq t1, t2, aplica_sinal2
      li t1, 1
@@ -91,7 +99,8 @@ obtem_coefs:
           li t1, -1
      continua_sinal2:
 
-     addi t0, t0, 1           # Pulando espaço
+     addi t0, t0, 2           # Pulando espaço
+     lb t2, 0(t0)
      li a1, 10                # \n (temrinador)
      mv a0, t0                # param da funcao
      salva_retorno
@@ -111,7 +120,7 @@ obtem_coefs:
           li t1, -1
      continua_sinal3:
 
-     addi t0, t0, 1           # Pulando espaço
+     addi t0, t0, 2           # Pulando espaço
      li a1, 10                # \n (temrinador)
      mv a0, t0                # param da funcao
      salva_retorno
