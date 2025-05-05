@@ -13,8 +13,8 @@
 
 .data
      coeficientes: .skip 12
-     limites: .word 0, 0
-     input_teste: .asciz "- 999\n+ 997\n- 998\n"
+     limites: .skip 8
+     input_teste: .asciz "+ 1\n- 2\n+ 4\n32 37\n"
 
 .text
 .globl _start
@@ -50,18 +50,16 @@ _start:
 
 main:
      # jal read
-     jal obtem_coefs
+     jal obtem_valores
 
-     voltou:
-     la t0, coeficientes
+     obteve_valores:
+     la t0, limites
      lw t1, 0(t0)
      lw t2, 4(t0)
-     lw t3, 8(t0)
-
      j exit
 
 
-obtem_coefs:
+obtem_valores:
      la t0, input_teste
      la a2, coeficientes
 
@@ -84,7 +82,6 @@ obtem_coefs:
      mul a0, a0, t1           # Aplicando o sinal
      sw a0, 0(a2)             # Salvando primeiro valor em coef
      addi t0, a1, 1           # Proximo valor
-     coef1:
 
      # -------------- Segundo valor
      lb t1, 0(t0)             # Obtendo sinal
@@ -106,7 +103,7 @@ obtem_coefs:
      mul a0, a0, t1           # Aplicando o sinal
      sw a0, 4(a2)             # Salvando primeiro valor em coef
      addi t0, a1, 1           # Proximo valor
-     coef2:
+
 
      # -------------- Terceiro valor
      lb t1, 0(t0)             # Obtendo sinal
@@ -127,9 +124,28 @@ obtem_coefs:
      mul a0, a0, t1           # Aplicando o sinal
      sw a0, 8(a2)             # Salvando primeiro valor em coef
      addi t0, a1, 1           # Proximo 
-     coef3:
 
-fim_coefs:
+     # Obtendo limites
+     # ------------- Primeiro limite
+     mv a0, t0
+     li a1, 32                # ' '
+     salva_retorno
+     jal atoi
+     carrega_retorno 
+     addi t0, a1, 1           # Andando para prox limite
+     la a1, limites
+     sw a0, 0(a1)             # Armazenando primeiro limite
+
+
+     # -------------- Segundo limite
+     mv a0, t0
+     li a1, 10                # '\n'
+     salva_retorno
+     jal atoi
+     carrega_retorno
+     la a1, limites
+     sw a0, 4(a1)             # Salvando segundo limite
+
      ret
 
 
