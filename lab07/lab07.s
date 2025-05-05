@@ -12,9 +12,9 @@
 # 0 1
 
 .data
-     coeficientes: .word 0, 0, 0
+     coeficientes: .skip 12
      limites: .word 0, 0
-     input_teste: .asciz "+ 999\n+ 997\n+ 998\n"
+     input_teste: .asciz "- 999\n+ 997\n- 998\n"
 
 .text
 .globl _start
@@ -63,12 +63,10 @@ main:
 
 obtem_coefs:
      la t0, input_teste
-     li a1, 10           # \n (cond de parada)
      la a2, coeficientes
 
      # -------------- Primeiro valor
      lb t1, 0(t0)             # Obtendo sinal
-
      li t2, 45                # '-' (sinal de menos)
      beq t1, t2, aplica_sinal1
      li t1, 1
@@ -78,7 +76,6 @@ obtem_coefs:
      continua_sinal1:
 
      addi t0, t0, 2           # Pulando espaço
-     lb t2, 0(t0)
      li a1, 10                # \n (temrinador)
      mv a0, t0                # param da funcao
      salva_retorno
@@ -86,7 +83,8 @@ obtem_coefs:
      carrega_retorno
      mul a0, a0, t1           # Aplicando o sinal
      sw a0, 0(a2)             # Salvando primeiro valor em coef
-     addi t0, t0, 1           # Proximo valor
+     addi t0, a1, 1           # Proximo valor
+     coef1:
 
      # -------------- Segundo valor
      lb t1, 0(t0)             # Obtendo sinal
@@ -100,7 +98,6 @@ obtem_coefs:
      continua_sinal2:
 
      addi t0, t0, 2           # Pulando espaço
-     lb t2, 0(t0)
      li a1, 10                # \n (temrinador)
      mv a0, t0                # param da funcao
      salva_retorno
@@ -108,7 +105,8 @@ obtem_coefs:
      carrega_retorno
      mul a0, a0, t1           # Aplicando o sinal
      sw a0, 4(a2)             # Salvando primeiro valor em coef
-     addi t0, t0, 1           # Proximo valor
+     addi t0, a1, 1           # Proximo valor
+     coef2:
 
      # -------------- Terceiro valor
      lb t1, 0(t0)             # Obtendo sinal
@@ -128,7 +126,8 @@ obtem_coefs:
      carrega_retorno
      mul a0, a0, t1           # Aplicando o sinal
      sw a0, 8(a2)             # Salvando primeiro valor em coef
-     addi t0, t0, 1           # Proximo valor
+     addi t0, a1, 1           # Proximo 
+     coef3:
 
 fim_coefs:
      ret
@@ -200,7 +199,8 @@ atoi:
           lb t0, 0(a0) 
           j loop_atoi
      fim_loop_atoi:
-          mv a0, t1
+          mv a1, a0                     # novo Offset
+          mv a0, t1                     # Int convertido
           recupera_reg
           ret
 
