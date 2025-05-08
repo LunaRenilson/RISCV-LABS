@@ -2,17 +2,10 @@
 # +/- x1\n
 # +/- x2\n
 # +/- x3\n
-# a b\n
-#  --> xn = [1, 999]
-#  --> a, b = [0, 999]
-
-# + 999
-# + 997
-# + 998
-# 0 1
 
 .data
-     coeficientes: .skip 12
+     potencias: .skip 12
+     sinal_integral: .skip 12
      limites: .skip 8
      input_teste: .asciz "+ 1\n- 2\n+ 4\n32 37\n"
 
@@ -49,28 +42,130 @@ _start:
      j main
 
 main:
-     # jal read
+     jal read
      jal obtem_valores
 
-     obteve_valores:
-     la t0, limites
-     lw t1, 0(t0)
-     lw t2, 4(t0)
+     li t0, 0            # somar as integrais
+     la t1, potencias
+
+     # Sinais das integrais
+     la t2, sinal_integral
+
+     # Calculando primeira integral
+     lw a0, 0(t1)
+     jal calc_integral
+     # Aplicando sinal na integral
+     lw t3, 0(t2)
+     mul a0, a0, t3
+     add t0, t0, a0
+
+     # Calculando segunda integral
+     lw a0, 4(t1)
+     jal calc_integral
+     # Aplicando sinal na integral
+     lw t3, 4(t2)
+     mul a0, a0, t3
+     add t0, t0, a0
+
+
+     # Calculando terceira integral
+     lw a0, 8(t1)
+     jal calc_integral
+     # Aplicando sinal na integral
+     lw t3, 8(t2)
+     mul a0, a0, t3
+     add t0, t0, a0
+
+     mv a0, t0
+     la a1, resultado
+     jal itoa
+
+     mv a2, a0           # tamanho da string
+     jal write
      j exit
 
 
+# Função calc_integral:
+# Entrada: a0 = θ (potência)
+# Saída: a0 = resultado da integral (b^(θ+1)/(θ+1) - a^(θ+1)/(θ+1)
+calc_integral:
+     salva_retorno            # Salva o endereço de retorno
+     salva_reg                # Salva registradores temporários
+
+     # Carrega limites a e b
+     la t0, limites
+     lw t1, 0(t0)             # t1 = a
+     lw t2, 4(t0)             # t2 = b
+
+     # Calcula θ + 1
+     addi t3, a0, 1           # t3 = θ + 1
+
+     # Calcula a^(θ+1)
+     mv a0, t1                # a0 = a
+     mv a1, t3                # a1 = θ + 1
+     jal potencia             # a0 = a^(θ+1)
+     mv t4, a0                # t4 = a^(θ+1)
+
+     # Calcula b^(θ+1)
+     mv a0, t2                # a0 = b
+     mv a1, t3                # a1 = θ + 1
+     jal potencia             # a0 = b^(θ+1)
+     mv t5, a0                # t5 = b^(θ+1)
+
+     # Divide b^(θ+1) por (θ+1)
+     div t5, t5, t3           # t5 = b^(θ+1) / (θ+1)
+
+     # Divide a^(θ+1) por (θ+1)
+     div t4, t4, t3           # t4 = a^(θ+1) / (θ+1)
+
+     # Subtrai os resultados
+     sub a0, t5, t4           # a0 = (b^(θ+1)/(θ+1)) - (a^(θ+1)/(θ+1)
+
+     recupera_reg             # Restaura registradores
+     carrega_retorno          # Restaura endereço de retorno
+     ret
+
+# Função auxiliar: potencia (a0^a1)
+# Entrada: a0 = base, a1 = expoente
+# Saída: a0 = resultado
+potencia:
+     salva_retorno
+     salva_reg
+     li t0, 1                 # t0 = resultado (inicializado com 1)
+     mv t1, a0                # t1 = base
+     mv t2, a1                # t2 = expoente
+     beqz t2, fim_potencia    # Se expoente = 0, retorna 1
+
+loop_potencia:
+     mul t0, t0, t1           # t0 *= base
+     addi t2, t2, -1          # expoente--
+     bnez t2, loop_potencia   # Repete até expoente = 0
+
+fim_potencia:
+     mv a0, t0                # Retorna o resultado
+     recupera_reg
+     carrega_retorno
+     ret
+
 obtem_valores:
-     la t0, input_teste
-     la a2, coeficientes
+     la t0, input
+     la a2, potencias
 
      # -------------- Primeiro valor
      lb t1, 0(t0)             # Obtendo sinal
      li t2, 45                # '-' (sinal de menos)
      beq t1, t2, aplica_sinal1
-     li t1, 1
+     
+     # Caso sinal seja positivo, aplica 1
+     la t1, sinal_integral
+          li t2, 1
+          sw t2, 0(t1)
      j continua_sinal1
+     # Caso sinal seja negativo, aplica 2
      aplica_sinal1:
-          li t1, -1
+          la t1, sinal_integral
+          li t2, -1
+          sw t2, 0(t1)
      continua_sinal1:
 
      addi t0, t0, 2           # Pulando espaço
@@ -79,7 +174,6 @@ obtem_valores:
      salva_retorno
      jal atoi                # convertendo str para int (Retorno em a0)
      carrega_retorno
-     mul a0, a0, t1           # Aplicando o sinal
      sw a0, 0(a2)             # Salvando primeiro valor em coef
      addi t0, a1, 1           # Proximo valor
 
@@ -88,10 +182,17 @@ obtem_valores:
 
      li t2, 45                # '-' (sinal de menos)
      beq t1, t2, aplica_sinal2
-     li t1, 1
+
+     # Caso sinal seja positivo, aplica 1
+     la t1, sinal_integral
+          li t2, 1
+          sw t2, 4(t1)
      j continua_sinal2
+     # Caso sinal seja negativo, aplica 2
      aplica_sinal2:
-          li t1, -1
+          la t1, sinal_integral
+          li t2, -1
+          sw t2, 4(t1)
      continua_sinal2:
 
      addi t0, t0, 2           # Pulando espaço
@@ -100,19 +201,24 @@ obtem_valores:
      salva_retorno
      jal atoi                # convertendo str para int (Retorno em a0)
      carrega_retorno
-     mul a0, a0, t1           # Aplicando o sinal
      sw a0, 4(a2)             # Salvando primeiro valor em coef
      addi t0, a1, 1           # Proximo valor
-
 
      # -------------- Terceiro valor
      lb t1, 0(t0)             # Obtendo sinal
      li t2, 45                # '-' (sinal de menos)
      beq t1, t2, aplica_sinal3
-     li t1, 1                 # Caso nao seja negativo
+
+     # Caso sinal seja positivo, aplica 1
+     la t1, sinal_integral
+          li t2, 1
+          sw t2, 8(t1)
      j continua_sinal3
+     # Caso sinal seja negativo, aplica 2
      aplica_sinal3:
-          li t1, -1
+          la t1, sinal_integral
+          li t2, -1
+          sw t2, 8(t1)
      continua_sinal3:
 
      addi t0, t0, 2           # Pulando espaço
@@ -121,7 +227,6 @@ obtem_valores:
      salva_retorno
      jal atoi                # convertendo str para int (Retorno em a0)
      carrega_retorno
-     mul a0, a0, t1           # Aplicando o sinal
      sw a0, 8(a2)             # Salvando primeiro valor em coef
      addi t0, a1, 1           # Proximo 
 
@@ -154,8 +259,9 @@ obtem_valores:
 itoa: 
      addi sp, sp, -32         # reserva espaço na pilha (ajustável)
      mv t0, sp
-     li t1, 0                 # qtd de caracteres (contador)  
-     li t2, 10                # divisor   
+     li t1, 0                 # qtd de caracteres (contador parcial)
+     li t4, 0                 # qtd de caractered (contador para retorno da func)
+     li t2, 10                # divisor & '\n'
 
      # Trata caso especial de zero
      beqz a0, trata_zero
@@ -170,6 +276,7 @@ itoa:
           
           addi t0, t0, 1      # Andando na pilhar
           addi t1, t1, 1      # Incrementando contador
+          addi t4, t4, 1      # Incrementando contador
 
           j loop_itoa
      
@@ -188,6 +295,8 @@ itoa:
           sb t2, 0(a1)        # Adicionando terminador
           # Restaurando a pilha
           addi sp, sp, 32     
+          addi t4, t4, 1           # contando '\n'
+          mv a0, t4
 
           ret
 
@@ -197,6 +306,7 @@ itoa:
           addi t0, t0, 1      # andando na pilha
           li t1, 1            # Contador de char (1, nesse caso)
           j desempilha_itoa   # Desempilhando
+
 
 # Converte str em int
 # Entrada: a0 (string) a1 (terminador)
@@ -234,7 +344,7 @@ read:
 write:
      li a0, 1            # file descriptor = 1 (stdout)
      la a1, resultado       # buffer
-     li a2, 22            # size
+     # li a2, 22            # size
      li a7, 64           # syscall write (64)
      ecall
      ret
