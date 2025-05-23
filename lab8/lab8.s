@@ -1,0 +1,137 @@
+# Entrada: 
+# P5
+# 64 64
+# 255
+# [dados de 4 096 bytes]
+
+# Nos primeiros bits menos significativos da imagem, excluindo o cabeçalho, você encontrará:
+
+# Mensagem 1: 31 caracteres (248 bits). É uma pista textual que indica o valor do shift para decifrar a segunda mensagem.
+# Mensagem 2: 24 caracteres (192 bits), criptografada via cifra de César.
+# Total de bits lidos do início da imagem: 440 bits (55 bytes).
+
+.data
+     largura: .word 64
+     altura: .word 64
+     input_file: .asciz "image.pgm"
+
+.globl _start
+
+_start:
+     j main
+
+# Converte int em str
+# Entrada: a0 (int), a1(buffer de saída)
+itoa: 
+     addi sp, sp, -32         # reserva espaço na pilha (ajustável)
+     mv t0, sp
+     li t1, 0                 # qtd de caracteres (contador)  
+     li t2, 10                # divisor   
+
+     # Trata caso especial de zero
+     beqz a0, trata_zero
+
+
+     loop_itoa:
+          beqz a0, desempilha_itoa
+          rem t3, a0, t2      # Obtendo digito menos significativo
+          div a0, a0, t2      # Deslocando inteiro
+          addi t3, t3, 48     # Convertendo pra char
+          sb t3, 0(t0)        # Armazenando valor convertido
+          
+          addi t0, t0, 1      # Andando na pilhar
+          addi t1, t1, 1      # Incrementando contador
+
+          j loop_itoa
+     
+     desempilha_itoa:
+          beqz t1, fim_itoa
+          lb t3, -1(t0)        # Desempilhando char
+          sb t3, 0(a1)        # empilhando na variavel da saida
+
+          addi t0, t0, -1     # Voltando na pilha aux
+          addi a1, a1, 1      # Avançando na pilha de saida
+          addi t1, t1, -1
+          j desempilha_itoa
+
+
+     fim_itoa:
+          sb t2, 0(a1)        # Adicionando terminador
+          # Restaurando a pilha
+          addi sp, sp, 32     
+
+          ret
+
+     trata_zero:
+          li t3, 48           # '0'
+          sb t3, 0(t0)        # carregando valor na pilha
+          addi t0, t0, 1      # andando na pilha
+          li t1, 1            # Contador de char (1, nesse caso)
+          j desempilha_itoa   # Desempilhando
+
+# Converte str em int
+# Entrada: a0 (string) a1 (terminador)
+# Saída: a0 (int com resultado)
+atoi:
+     lb t0, 0(a0)        # Primeiro char
+     li t1, 0            # Total
+     li t2, 10           # multiplicador
+
+     loop_atoi:
+          beq t0, a1, fim_loop_atoi
+          addi t3, t0, -48              # Convertendo para int
+          mul t1, t1, t2                # add casa decimal no total
+          add t1, t1, t3                # Adicionando valor no total 
+          addi a0, a0, 1                # prox digito
+          lb t0, 0(a0) 
+          j loop_atoi
+     fim_loop_atoi:
+          mv a0, t1
+          ret
+
+# entrada: a2 (tamanho do buffer a ser lido)
+read:
+     li a0, 0             # file descriptor = 0 (stdin)
+     la a1, input # buffer
+     li a7, 63            # syscall read (63)
+     
+     ecall
+     ret
+
+write:
+     li a0, 1            # file descriptor = 1 (stdout)
+     la a1, resultado       # buffer
+     li a2, 3            # size - Writes 4 bytes.
+     li a7, 64           # syscall write (64)
+     ecall
+     ret
+
+
+exit:
+     li a0, 0
+     li a7, 93
+     ecall
+
+
+main:
+     
+     j exit
+
+setPixel:
+     li a0, 100 # x coordinate = 100
+     li a1, 200 # y coordinate = 200
+     li a2, 0xFFFFFFFF # white pixel
+     li a7, 2200 # syscall setPixel (2200)
+     ecall
+     ret
+
+setCanvas: 
+     # setando tamanho do canvas
+    lw a0, largura               # altura do cavas
+    lw a1, altura              # largura do canvas
+    li a7, 2201                 # syscall
+    ecall
+
+.bss
+     input: .skip 32  # buffer
+     resultado: .skip 32
