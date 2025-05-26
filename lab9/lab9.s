@@ -1,36 +1,108 @@
-.globl _start
+ .section .data
+    str_buffer: .skip 7   # Buffer for strings
+    result_buffer: .space 20  # Buffer for integer to string conversion
+
+.globl linked_list_search
+.globl puts
+.globl gets
+.globl atoi
+.globl itoa
+.globl exit
+# .globl _start
 
 .macro salva_retorno
-    addi sp, sp, -4       # aloca espaço na pilha
+    addi sp, sp, -16       # aloca espaço na pilha
     sw ra, 0(sp)          # salva ra (32 bits)
 .endm
-.macro carrega_retorno
+.macro recupera_retorno
     lw ra, 0(sp)          # salva ra (32 bits)
-    addi sp, sp, 4       # aloca espaço na pilha
+    addi sp, sp, 16       # aloca espaço na pilha
 .endm
 
 .macro salva_reg
-     addi sp, sp, -16
+     addi sp, sp, -32
      sw t0, 0(sp)
      sw t1, 4(sp)
      sw t2, 8(sp)
      sw t3, 12(sp)
+     sw t4, 16(sp)
+     sw a0, 20(sp)
+     sw a1, 24(sp)
 .endm
 .macro recupera_reg
+     lw a1, 24(sp)
+     lw a0, 20(sp)
+     lw t4, 16(sp)
      lw t3, 12(sp)
      lw t2, 8(sp)
      lw t1, 4(sp)
      lw t0, 0(sp)
-     addi sp, sp, 16
+     addi sp, sp, 32
 .endm
 
 
-_start:
-     j main
+# CORREÇÕES: Percorrer gets e puts para obter tamanho da string
+# CORREÇÕES: Verificar cada comando e se está de acordo com o manual
 
+
+# int linked_list_search(Node *head_node, int val);
+# a0: *head_node
+# a1: valor
+linked_list_search:
+     salva_retorno
+     salva_reg
+
+     li t0, 0            # contador
+
+     loop_node:
+          lw t1, 0(a0)        # carrega valor 1
+          lw t2, 4(a0)        # Carrega valor 2
+          lw t3, 8(a0)        # prox nó
+
+
+          add t4, t1, t2      # t4 = va1 + va2
+          beq t4, a1, achou 
+          beqz t3, nao_achou  # node->next = null: nao_achou
+
+          addi t0, t0, 1
+          mv a0, t3
+          j loop_node
+
+     achou:
+          mv a0, t0           # salva indice para retorno
+          j fim_node
+
+     nao_achou:
+          li a0, -1
+     
+     fim_node:
+          recupera_retorno
+          recupera_reg
+          ret 
+
+puts:
+     mv a1, a0
+     li t0, 10           # ascii \n
+     sb zero, 6(a1)      # add \0 ao final da string
+     
+     li a0, 1            # Codigo do output
+     li a7, 64           # codigo do perif.
+     ecall
+     ret
+
+
+gets:
+     mv a1, a0
+     li a0, 0                    # file descriptor = 0 (stdin)
+     li a7, 63                   # syscall read (63)
+     ecall
+     ret
 
 # Converte int em str
-# Entrada: a0 (int), a1(buffer de saída)
+# a0: int
+# a1: buffer de saída
+# a2: hex ou dec
+
 itoa: 
      addi sp, sp, -32         # reserva espaço na pilha (ajustável)
      mv t0, sp
@@ -39,7 +111,6 @@ itoa:
 
      # Trata caso especial de zero
      beqz a0, trata_zero
-
 
      loop_itoa:
           beqz a0, desempilha_itoa
@@ -68,7 +139,6 @@ itoa:
           sb t2, 0(a1)        # Adicionando terminador
           # Restaurando a pilha
           addi sp, sp, 32     
-
           ret
 
      trata_zero:
@@ -98,29 +168,8 @@ atoi:
           mv a0, t1
           ret
 
-# entrada: a2 (tamanho do buffer a ser lido)
-read:
-     li a0, 0             # file descriptor = 0 (stdin)
-     la a1, input # buffer
-     li a7, 63            # syscall read (63)
-     
-     ecall
-     ret
-
-write:
-     li a0, 1            # file descriptor = 1 (stdout)
-     la a1, resultado       # buffer
-     li a2, 3            # size - Writes 4 bytes.
-     li a7, 64           # syscall write (64)
-     ecall
-     ret
-
-
+# Exit function implementation using syscall exit(93)
 exit:
-     li a0, 0
-     li a7, 93
-     ecall
-
-.bss
-     input: .skip 32  # buffer
-     resultado: .skip 32
+   li a7, 93                  # Syscall number for exit
+   li a0, 0                   # Exit code (success)
+   ecall                      # Call Linux to terminate the program 
