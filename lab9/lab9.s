@@ -1,6 +1,3 @@
- .section .data
-    str_buffer: .skip 7   # Buffer for strings
-    result_buffer: .space 20  # Buffer for integer to string conversion
 
 .globl linked_list_search
 .globl puts
@@ -8,7 +5,7 @@
 .globl atoi
 .globl itoa
 .globl exit
-# .globl _start
+.globl _start
 
 .macro salva_retorno
     addi sp, sp, -16       # aloca espaço na pilha
@@ -26,12 +23,8 @@
      sw t2, 8(sp)
      sw t3, 12(sp)
      sw t4, 16(sp)
-     sw a0, 20(sp)
-     sw a1, 24(sp)
 .endm
 .macro recupera_reg
-     lw a1, 24(sp)
-     lw a0, 20(sp)
      lw t4, 16(sp)
      lw t3, 12(sp)
      lw t2, 8(sp)
@@ -40,14 +33,9 @@
      addi sp, sp, 32
 .endm
 
-
-# CORREÇÕES: Percorrer gets e puts para obter tamanho da string
-# CORREÇÕES: Verificar cada comando e se está de acordo com o manual
-
-
-# int linked_list_search(Node *head_node, int val);
-# a0: *head_node
-# a1: valor
+# # int linked_list_search(Node *head_node, int val);
+# # a0: *head_node
+# # a1: valor
 linked_list_search:
      salva_retorno
      salva_reg
@@ -58,7 +46,6 @@ linked_list_search:
           lw t1, 0(a0)        # carrega valor 1
           lw t2, 4(a0)        # Carrega valor 2
           lw t3, 8(a0)        # prox nó
-
 
           add t4, t1, t2      # t4 = va1 + va2
           beq t4, a1, achou 
@@ -76,24 +63,42 @@ linked_list_search:
           li a0, -1
      
      fim_node:
-          recupera_retorno
           recupera_reg
+          recupera_retorno
           ret 
 
 puts:
+     li a2, 0
+     mv t0, a0
+
+     # Tamanho da str: Andando ate achar o fim da str
+     loop_tam_str:
+          lb t1, 0(t0)        # carregando byte
+          beqz t1, fim_loop_tam_str
+
+          addi t0, t0, 1
+          addi a2, a2, 1
+          j loop_tam_str
+     
+     fim_loop_tam_str:
+
      mv a1, a0
      li t0, 10           # ascii \n
-     sb zero, 6(a1)      # add \0 ao final da string
+     mv t1, a1           
+
+     add t1, t1, a2      # ultimo caractere
+     addi t1, t1, 1         
+     sb t0, 0(t1)         # add \n ao final da string
      
      li a0, 1            # Codigo do output
      li a7, 64           # codigo do perif.
      ecall
      ret
 
-
 gets:
      mv a1, a0
      li a0, 0                    # file descriptor = 0 (stdin)
+     li a2, 100
      li a7, 63                   # syscall read (63)
      ecall
      ret
@@ -102,7 +107,6 @@ gets:
 # a0: int
 # a1: buffer de saída
 # a2: hex ou dec
-
 itoa: 
      addi sp, sp, -32         # reserva espaço na pilha (ajustável)
      mv t0, sp
