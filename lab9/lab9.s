@@ -1,4 +1,3 @@
-
 .globl linked_list_search
 .globl puts
 .globl gets
@@ -101,6 +100,8 @@ gets:
      li a2, 100
      li a7, 63                   # syscall read (63)
      ecall
+
+     mv a0, a1
      ret
 
 # Converte int em str
@@ -108,6 +109,7 @@ gets:
 # a1: buffer de saída
 # a2: hex ou dec
 itoa: 
+     salva_reg
      addi sp, sp, -32         # reserva espaço na pilha (ajustável)
      mv t0, sp
      li t1, 0                 # qtd de caracteres (contador)  
@@ -142,7 +144,8 @@ itoa:
      fim_itoa:
           sb t2, 0(a1)        # Adicionando terminador
           # Restaurando a pilha
-          addi sp, sp, 32     
+          addi sp, sp, 32
+          recupera_reg
           ret
 
      trata_zero:
@@ -159,7 +162,7 @@ atoi:
      lb t0, 0(a0)        # Primeiro char
      li t1, 0            # Total
      li t2, 10           # multiplicador
-
+     li a1, 10            # cond de parada forçado '\0'
      loop_atoi:
           beq t0, a1, fim_loop_atoi
           addi t3, t0, -48              # Convertendo para int
