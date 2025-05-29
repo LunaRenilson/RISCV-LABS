@@ -1,3 +1,6 @@
+.data
+     input: .skip 32
+
 .globl linked_list_search
 .globl puts
 .globl gets
@@ -66,9 +69,12 @@ linked_list_search:
           recupera_retorno
           ret 
 
+# a0: buffer
 puts:
+     salva_retorno
      li a2, 0
      mv t0, a0
+     li t2, 10
 
      # Tamanho da str: Andando ate achar o fim da str
      loop_tam_str:
@@ -78,30 +84,67 @@ puts:
           addi t0, t0, 1
           addi a2, a2, 1
           j loop_tam_str
-     
      fim_loop_tam_str:
 
-     mv a1, a0
-     li t0, 10           # ascii \n
-     mv t1, a1           
+     # Preparar para syscall sem modificar o buffer
+     mv a1, a0           # buffer
 
-     add t1, t1, a2      # ultimo caractere
-     addi t1, t1, 1         
-     sb t0, 0(t1)         # add \n ao final da string
+     li t0, 10           # '\n'
+     add t1, a0, a2          # andando para ultima casa do buffer
+     sb t0, 0(t1)        # adicionando quebra de linha
+     addi a2, a2, 1      # considerando espaço adicional do buffer
+
+     # a2 já contém o tamanho (calculado)
+     li a0, 1            # stdout
+     li a7, 64           # syscall write
      
-     li a0, 1            # Codigo do output
-     li a7, 64           # codigo do perif.
+     # Adicionar nova linha separadamente
      ecall
+
+     recupera_retorno
      ret
 
 gets:
-     mv a1, a0
-     li a0, 0                    # file descriptor = 0 (stdin)
+     li a0, 0                 # file descriptor = 0 (stdin)
+     la a1, input 
      li a2, 100
-     li a7, 63                   # syscall read (63)
+     li a7, 63                # syscall read (63)
      ecall
 
-     mv a0, a1
+     li t0, 6
+     loop_verifica:
+          beqz t0, fim_verifica
+
+          lb t1, 0(a1)
+          addi t0, t0, -1
+          j loop_verifica
+
+     fim_verifica:
+
+     la a0, input
+     lb t0, 0(a0)
+
+     li t1, 31                # t1 = '1'
+     beq t0, t1, trata_1      # buffer[0] = '1' -> trata_1
+     
+     li t1, 34                # t1 = '4'
+     beq t0, t1, trata_4      # buffer[0] = '4' -> trata_4
+     
+     li t1, 35                # t1 = '5'
+     beq t0, t1, trata_4      # buffer[0] = '5' -> trata_5
+
+     j fim_gets
+
+     trata_1:
+          # addi a0, a0, 2           # pulando digito e \n
+          jal puts
+          j fim_gets
+
+     trata_4:
+
+     trata_5:
+
+     fim_gets:
      ret
 
 # Converte int em str
@@ -114,6 +157,7 @@ itoa:
      mv t0, sp
      li t1, 0                 # qtd de caracteres (contador)  
      li t2, 10                # divisor   
+     mv t5, a1                # salvando buffer
 
      # Trata caso especial de zero
      beqz a0, trata_zero
@@ -140,9 +184,11 @@ itoa:
           addi t1, t1, -1
           j desempilha_itoa
 
-
      fim_itoa:
-          sb t2, 0(a1)        # Adicionando terminador
+          li t4, 0
+          sb t4, 0(a1)        # Adicionando terminador
+          mv a0, t5           # recuperando buffer
+
           # Restaurando a pilha
           addi sp, sp, 32
           recupera_reg
@@ -180,3 +226,4 @@ exit:
    li a7, 93                  # Syscall number for exit
    li a0, 0                   # Exit code (success)
    ecall                      # Call Linux to terminate the program 
+
