@@ -1,5 +1,5 @@
 .data
-     input: .skip 32
+     input: .skip 100
 
 .globl linked_list_search
 .globl puts
@@ -105,101 +105,118 @@ puts:
      ret
 
 gets:
-     li a0, 0                 # file descriptor = 0 (stdin)
-     la a1, input 
-     li a2, 100
-     li a7, 63                # syscall read (63)
-     ecall
-
-     li t0, 6
-     loop_verifica:
-          beqz t0, fim_verifica
-
-          lb t1, 0(a1)
-          addi t0, t0, -1
-          j loop_verifica
-
-     fim_verifica:
 
      la a0, input
      lb t0, 0(a0)
 
-     li t1, 31                # t1 = '1'
+     li t1, 48                # t1 = '1'
+     beq t0, t1, trata_0      # buffer[0] = '1' -> trata_1
+
+     li t1, 49                # t1 = '1'
      beq t0, t1, trata_1      # buffer[0] = '1' -> trata_1
      
-     li t1, 34                # t1 = '4'
-     beq t0, t1, trata_4      # buffer[0] = '4' -> trata_4
+     # li t1, 34                # t1 = '4'
+     # beq t0, t1, trata_4      # buffer[0] = '4' -> trata_4
      
-     li t1, 35                # t1 = '5'
-     beq t0, t1, trata_4      # buffer[0] = '5' -> trata_5
+     li t1, 53                # t1 = '5'
+     beq t0, t1, trata_5      # buffer[0] = '5' -> trata_5
 
-     j fim_gets
+     j obtem_input
+
+
+     trata_0:
+          jal puts
 
      trata_1:
-          # addi a0, a0, 2           # pulando digito e \n
+          addi a0, a0, 2           # pulando digito e \n
           jal puts
           j fim_gets
 
      trata_4:
 
      trata_5:
+          addi a0, a0, 2
+          j fim_gets
+
+     obtem_input:
+     li a0, 0                 # file descriptor = 0 (stdin)
+     la a1, input 
+     li a2, 100
+     li a7, 63                # syscall read (63)
+     ecall
 
      fim_gets:
-     ret
+          ret
 
 # Converte int em str
 # a0: int
 # a1: buffer de saída
 # a2: hex ou dec
 itoa: 
+     salva_retorno
      salva_reg
-     addi sp, sp, -32         # reserva espaço na pilha (ajustável)
+
+     addi sp, sp, -32         # reserva espaço na pilha
      mv t0, sp
      li t1, 0                 # qtd de caracteres (contador)  
      li t2, 10                # divisor   
      mv t5, a1                # salvando buffer
+     li t6, 0                 # flag para sinal negativo (0 = positivo)
 
+     # Verifica se o número é negativo
+     bgez a0, nao_negativo    # Se a0 >= 0, pula a tratativa de negativo
+     li t6, 1                 # Marca como negativo
+     neg a0, a0               # Converte para positivo
+
+nao_negativo:
      # Trata caso especial de zero
      beqz a0, trata_zero
 
-     loop_itoa:
-          beqz a0, desempilha_itoa
-          rem t3, a0, t2      # Obtendo digito menos significativo
-          div a0, a0, t2      # Deslocando inteiro
-          addi t3, t3, 48     # Convertendo pra char
-          sb t3, 0(t0)        # Armazenando valor convertido
-          
-          addi t0, t0, 1      # Andando na pilhar
-          addi t1, t1, 1      # Incrementando contador
-
-          j loop_itoa
+loop_itoa:
+     beqz a0, insere_sinal_negativo  # Agora vamos inserir o sinal ANTES dos dígitos
+     rem t3, a0, t2           # Obtendo digito menos significativo
+     div a0, a0, t2           # Deslocando inteiro
+     addi t3, t3, 48          # Convertendo pra char
+     sb t3, 0(t0)             # Armazenando valor convertido
      
-     desempilha_itoa:
-          beqz t1, fim_itoa
-          lb t3, -1(t0)        # Desempilhando char
-          sb t3, 0(a1)        # empilhando na variavel da saida
+     addi t0, t0, 1           # Andando na pilha
+     addi t1, t1, 1           # Incrementando contador
+     j loop_itoa
 
-          addi t0, t0, -1     # Voltando na pilha aux
-          addi a1, a1, 1      # Avançando na pilha de saida
-          addi t1, t1, -1
-          j desempilha_itoa
+insere_sinal_negativo:
+     # Se for negativo, insere '-' ANTES dos dígitos
+     beqz t6, desempilha_itoa  # Se não for negativo, vai direto para desempilhar
+     li t3, 45                # Caractere '-'
+     sb t3, 0(a1)             # Armazena no buffer
+     addi a1, a1, 1           # Avança no buffer
 
-     fim_itoa:
-          li t4, 0
-          sb t4, 0(a1)        # Adicionando terminador
-          mv a0, t5           # recuperando buffer
+desempilha_itoa:
+     beqz t1, fim_itoa
+     lb t3, -1(t0)            # Desempilhando char
+     sb t3, 0(a1)             # Armazenando no buffer de saída
 
-          # Restaurando a pilha
-          addi sp, sp, 32
-          recupera_reg
-          ret
+     addi t0, t0, -1          # Voltando na pilha aux
+     addi a1, a1, 1           # Avançando no buffer de saída
+     addi t1, t1, -1
+     j desempilha_itoa
 
-     trata_zero:
-          li t3, 48           # '0'
-          sb t3, 0(t0)        # carregando valor na pilha
-          addi t0, t0, 1      # andando na pilha
-          li t1, 1            # Contador de char (1, nesse caso)
-          j desempilha_itoa   # Desempilhando
+fim_itoa:
+     li t4, 0
+     sb t4, 0(a1)             # Adicionando terminador nulo
+     mv a0, t5                # recuperando buffer
+
+     # Restaurando a pilha
+     addi sp, sp, 32
+     recupera_reg
+     recupera_retorno
+     ret
+     
+trata_zero:
+     li t3, 48                # '0'
+     sb t3, 0(t0)             # carregando valor na pilha
+     addi t0, t0, 1           # andando na pilha
+     li t1, 1                 # Contador de char (1, nesse caso)
+     j desempilha_itoa        # Desempilhando
 
 # Converte str em int
 # Entrada: a0 (string) a1 (terminador)
