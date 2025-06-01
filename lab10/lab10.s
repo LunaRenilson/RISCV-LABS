@@ -41,33 +41,66 @@ torre_de_hanoi:
      j exit 
 
 fibonacci_recursive:
-     j exit
+     addi sp, sp, -16
+     sw ra, 12(sp)
+     sw a0, 8(sp)
 
-# a0: int
-fatorial_recursive:
-     salva_retorno
-     addi sp, sp, -4
-     sw a0, 4(sp)                  # Salvando valor da chamada anterior
+     li t0, 1
+     ble a0, t0, fib_base        # if n <= 1, vai para base
 
-     # int <= 1: caso base
-     li t0, 1            
-     ble t0, a0, base_fatorial
+     # Caso Recursivo
+     addi a0, a0, -1
+     jal fibonacci_recursive
+     mv t1, a0                   # t1 = fib(n - 1)
+     sw t1, 4(sp)                # salvando n - 1 na pilha
 
-     # n * fatorial(n-1): caso recursivo
-     addi a0, a0, -1               # n-1
-     jal fatorial_recursive        # chamada recursiva
-     lw a1, 4(sp)                  # recuperando valor da chamada anterior
-     mul a0, a0, a1                # n * n -1
-     j fim_fatorial
+     lw a0, 8(sp)                # restaura a0 = n
+     addi a0, a0, -2
+     jal fibonacci_recursive
 
+     mv t2, a0                   # t2 = fib(n - 2)
 
-     base_fatorial:
-          li a0, 1                 # int = 1
-     
-     fim_fatorial:
-          addi sp, sp, 4           # desalocando espaço pro int na pilha
-          recupera_retorno
+     lw t1, 4(sp)                # recuperando n - 1
+     add a0, t1, t2              # a0 = fib(n - 1) + fib(n - 2)
+
+     lw ra, 12(sp)
+     addi sp, sp, 16
+     ret
+
+     fib_base:
+          lw a0, 8(sp)                # retorna a0 = n (0 ou 1)
+          lw ra, 12(sp)
+          addi sp, sp, 16
           ret
+
+
+
+fatorial_recursive:
+     addi sp, sp, -16              # alocando pilha
+     sw ra, 12(sp)                 # salvando na ultima posicao da pilha
+     sw a0, 8(sp)                  # salvando valor anterior
+
+     li t0, 1
+     beq t0, a0, base_fatorial     # verifica caso base
+
+     # Chamada Recursiva n * fatorial(n-1)
+     addi a0, a0, -1
+     jal fatorial_recursive
+
+     # aqui, a0 = fatorial(n-1)
+     lw t0, 8(sp)                  # n
+     mul a0, a0, t0                # n * n-1
+
+     # Recuperando retorno
+     lw ra, 12(sp)
+     addi sp, sp, 16
+     ret
+
+     # Caso base
+     base_fatorial:
+          lw ra, 12(sp)
+          addi sp, sp, 16
+          ret 
 
 
 # a0: buffer
