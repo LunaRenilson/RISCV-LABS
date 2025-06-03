@@ -45,14 +45,52 @@
 # a4: print_hanoi[40] = "Mover disco _ da torre _ para a torre _\0";
 # disco[12], torre_origem[23], torre_destino[38] 
 torre_de_hanoi:
-     addi sp, sp, -32
+     addi sp, sp, -16
      sw ra, 0(sp)
+     sw a0, 4(sp)
 
      li t0, 1
      beq t0, a0, base_hanoi
 
      # Caso recursivo
-     
+     mv t1, a2       # Salva destino
+     mv a2, a3       # destino = auxiliar (C → B)
+     mv a3, t1       # auxiliar = destino (B(original) → C)
+     addi a0, a0, -1
+     jal torre_de_hanoi
+
+     # realiza movimento
+     li t0, 48
+     add t0, t0, a0
+     sb t0, 12(a4)            # salvando n
+     sb a1, 23(a4)            # salvando torre origem 
+     sb a3, 38(a4)
+
+     # Salvando registradores e imprimindo movimentos
+     addi sp, sp, -16
+     sw ra, 0(sp)
+     sw a0, 4(sp)
+     sw a1, 8(sp)
+     sw a2, 12(sp)
+
+     mv a0, a4
+     jal puts 
+
+     lw a2, 12(sp)
+     lw a1, 8(sp)
+     lw a0, 4(sp)
+     lw ra, 0(sp)
+     addi sp, sp, 16
+
+     mv t1, a1       # Salva origem (A)
+     mv a1, a2       # origem = auxiliar (B)
+     mv a2, t1       # destino = origem (A)
+     # (a3 já é o destino correto)
+     addi a0, a0, -1 # Se já era n-1, remova esta linha!
+     jal torre_de_hanoi
+
+     lw a0, 4(sp)
+     addi sp, sp, 16
 
 
      base_hanoi:
@@ -74,6 +112,7 @@ torre_de_hanoi:
           lw a0, 4(sp)
           lw ra, 0(sp)
           addi sp, sp, 16
+          ret
 
 fibonacci_recursive:
      addi sp, sp, -16
