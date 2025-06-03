@@ -37,8 +37,43 @@
 .globl torre_de_hanoi
 
 
+
+
+
+# a0: qtd de discos
+# a1, a2, a3 = A, B, C
+# a4: print_hanoi[40] = "Mover disco _ da torre _ para a torre _\0";
+# disco[12], torre_origem[23], torre_destino[38] 
 torre_de_hanoi:
-     j exit 
+     addi sp, sp, -32
+     sw ra, 0(sp)
+
+     li t0, 1
+     beq t0, a0, base_hanoi
+
+     # Caso recursivo
+     
+
+
+     base_hanoi:
+          li t0, 48
+          add t0, t0, a0
+          sb t0, 12(a4)            # salvando n
+          sb a1, 23(a4)            # salvando torre origem 
+          sb a3, 38(a4)
+
+          addi sp, sp, -16
+          sw ra, 0(sp)
+          sw a0, 4(sp)
+          sw a1, 8(sp)
+          sw a2, 12(sp)
+          mv a0, a4
+          jal puts 
+          lw a2, 12(sp)
+          lw a1, 8(sp)
+          lw a0, 4(sp)
+          lw ra, 0(sp)
+          addi sp, sp, 16
 
 fibonacci_recursive:
      addi sp, sp, -16
