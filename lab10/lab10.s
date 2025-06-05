@@ -45,75 +45,90 @@
 # a4: print_hanoi[40] = "Mover disco _ da torre _ para a torre _\0";
 # disco[12], torre_origem[23], torre_destino[38] 
 torre_de_hanoi:
-     addi sp, sp, -16
-     sw ra, 0(sp)
-     sw a0, 4(sp)
+     addi sp, sp, -24     # Aumenta o frame para 24 bytes
+     sw ra, 20(sp)        # Salva ra
+     sw a0, 16(sp)        # Salva a0 (qtd discos)
+     sw a1, 12(sp)        # Salva a1 (torre origem)
+     sw a2, 8(sp)         # Salva a2 (torre auxiliar)
+     sw a3, 4(sp)         # Salva a3 (torre destino)
+     sw a4, 0(sp)         # Salva a4 (ponteiro da string)
 
      li t0, 1
-     beq t0, a0, base_hanoi
+     beq a0, t0, base_hanoi
 
-     # Caso recursivo
-     mv t1, a2       # Salva destino
-     mv a2, a3       # destino = auxiliar (C → B)
-     mv a3, t1       # auxiliar = destino (B(original) → C)
+     # Primeira recursão: move n-1 discos de origem para auxiliar
+     mv t1, a2
+     mv a2, a3            # a2 (auxiliar) = a3 (destino)
+     mv a3, t1            # a3 (destino) = auxiliar original (t1)
      addi a0, a0, -1
      jal torre_de_hanoi
 
-     # realiza movimento
+     # Restaura parâmetros originais (incluindo a4)
+     lw a0, 16(sp)
+     lw a1, 12(sp)
+     lw a2, 8(sp)
+     lw a3, 4(sp)
+     lw a4, 0(sp)         # Restaura a4
+
+     # Preenche a string com o movimento atual
      li t0, 48
-     add t0, t0, a0
-     sb t0, 12(a4)            # salvando n
-     sb a1, 23(a4)            # salvando torre origem 
-     sb a3, 38(a4)
+     add t0, t0, a0       # Converte disco para caractere
+     sb t0, 12(a4)        # Armazena caractere do disco
+     sb a1, 23(a4)        # Armazena torre origem
+     sb a3, 38(a4)        # Armazena torre destino
 
-     # Salvando registradores e imprimindo movimentos
-     addi sp, sp, -16
-     sw ra, 0(sp)
-     sw a0, 4(sp)
-     sw a1, 8(sp)
-     sw a2, 12(sp)
+     # Imprime o movimento
+     addi sp, sp, -32
+     sw ra, 32(sp)        # Salva ra temporariamente
+     sw a0, 28(sp)        # Salva a0 temporariamente
+     sw a1, 24(sp)        # Salva a1 (torre origem)
+     sw a2, 20(sp)        # Salva a2 (torre auxiliar)
+     sw a3, 16(sp)        # Salva a3 (torre destino)
 
-     mv a0, a4
-     jal puts 
+     mv a0, a4            # Configura a string para puts
+     jal puts             # Chama puts
 
-     lw a2, 12(sp)
-     lw a1, 8(sp)
-     lw a0, 4(sp)
-     lw ra, 0(sp)
-     addi sp, sp, 16
+     lw ra, 32(sp)        # Restaura ra
+     lw a0, 28(sp)        # Restaura a0 (qtd discos)
+     lw a1, 24(sp)        # Restaura a1 (torre origem)
+     lw a2, 20(sp)        # Restaura a2 (torre auxiliar)
+     lw a3, 16(sp)        # Restaura a3 (torre destino)
+     addi sp, sp, 32      # Restaura stack pointer
 
-     mv t1, a1       # Salva origem (A)
-     mv a1, a2       # origem = auxiliar (B)
-     mv a2, t1       # destino = origem (A)
-     # (a3 já é o destino correto)
-     addi a0, a0, -1 # Se já era n-1, remova esta linha!
+     # Segunda recursão: move n-1 discos de auxiliar para destino
+     mv t1, a1            # Salva origem original
+     mv a1, a2            # Nova origem = auxiliar original (a2)
+     mv a2, t1            # Nova auxiliar = origem original (t1)
+     addi a0, a0, -1
      jal torre_de_hanoi
 
-     lw a0, 4(sp)
-     addi sp, sp, 16
+     j end_hanoi
 
+base_hanoi:
+     li t0, 48
+     add t0, t0, a0       # Converte disco para caractere
+     sb t0, 12(a4)        # Armazena disco
+     sb a1, 23(a4)        # Armazena origem
+     sb a3, 38(a4)        # Armazena destino
 
-     base_hanoi:
-          li t0, 48
-          add t0, t0, a0
-          sb t0, 12(a4)            # salvando n
-          sb a1, 23(a4)            # salvando torre origem 
-          sb a3, 38(a4)
+     # Imprime movimento do caso base
+     addi sp, sp, -4
+     sw a0, 0(sp)
+     mv a0, a4
+     jal puts
+     lw a0, 0(sp)
+     addi sp, sp, 4
 
-          addi sp, sp, -16
-          sw ra, 0(sp)
-          sw a0, 4(sp)
-          sw a1, 8(sp)
-          sw a2, 12(sp)
-          mv a0, a4
-          jal puts 
-          lw a2, 12(sp)
-          lw a1, 8(sp)
-          lw a0, 4(sp)
-          lw ra, 0(sp)
-          addi sp, sp, 16
-          ret
+end_hanoi:
+     lw ra, 20(sp)        # Restaura ra
+     addi sp, sp, 24      # Restaura stack pointer
+     ret
 
+# a0: n
+# Retorna o n-ésimo número de Fibonacci
+# Fibonacci(0) = 0, Fibonacci(1) = 1
+# Fibonacci(n) = Fibonacci(n-1) + Fibonacci(n-2) para n > 1
+# Exemplo: Fibonacci(5) = 5
 fibonacci_recursive:
      addi sp, sp, -16
      sw ra, 12(sp)
@@ -188,6 +203,7 @@ puts:
      loop_tam_str:
           lb t1, 0(t0)        # carregando byte
           beqz t1, fim_loop_tam_str
+          beq t1, t2, fim_loop_tam_str  # se for '\n', sai do loop
 
           addi t0, t0, 1
           addi a2, a2, 1
