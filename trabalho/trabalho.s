@@ -4,8 +4,33 @@
 
 .globl _start
 
+.macro salva_retorno
+    addi sp, sp, -16       # aloca espaço na pilha
+    sw ra, 0(sp)          # salva ra (32 bits)
+.endm
+.macro recupera_retorno
+    lw ra, 0(sp)          # salva ra (32 bits)
+    addi sp, sp, 16       # aloca espaço na pilha
+.endm
+
+.macro salva_reg
+     addi sp, sp, -16
+     sw t0, 0(sp)
+     sw t1, 4(sp)
+     sw t2, 8(sp)
+     sw t3, 12(sp)
+.endm
+.macro recupera_reg
+     lw t3, 12(sp)
+     lw t2, 8(sp)
+     lw t1, 4(sp)
+     lw t0, 0(sp)
+     addi sp, sp, 16
+.endm
+
+
+
 _start:
-    
     j exit
 
 
@@ -25,9 +50,6 @@ le_arquitetura:
         j loop_arquitetura
     fim_arquitetura:
         ret
-
-
-
 
 
 # Converte str em int

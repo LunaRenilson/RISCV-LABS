@@ -1,12 +1,12 @@
 .globl _start
 
 .macro salva_retorno
-    addi sp, sp, -4       # aloca espaço na pilha
+    addi sp, sp, -16       # aloca espaço na pilha
     sw ra, 0(sp)          # salva ra (32 bits)
 .endm
 .macro carrega_retorno
     lw ra, 0(sp)          # salva ra (32 bits)
-    addi sp, sp, 4       # aloca espaço na pilha
+    addi sp, sp, 16       # aloca espaço na pilha
 .endm
 
 .macro salva_reg

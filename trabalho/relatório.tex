@@ -1,0 +1,61 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+\usepackage{amsmath}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+
+% Pacotes para código
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Configuração de estilo para código
+\lstdefinestyle{meucodigo}{
+  backgroundcolor=\color{gray!10},
+  basicstyle=\ttfamily\small,
+  frame=single,
+  language=C,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{red},
+  showstringspaces=false
+}
+
+\title{Relatório: Inferência de Rede Neural em RISC-V}
+\author{Renilson C. de Luna Jr.}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introdução}
+
+\noindent
+\hspace{2em}Este relatório descreve a implementação de um processo de inferência de rede neural utilizando arquitetura RISC-V de 32 bits. O objetivo é executar uma rede previamente treinada com pesos quantizados e otimizados, usando operações compatíveis com instruções básicas da ISA RISC-V.
+
+\hspace{2em}O sistema recebe os dados de entrada, executa as camadas da rede (como convoluções, ativações e normalizações) e gera a saída inferida com uso mínimo de instruções e memória. Este trabalho foca em eficiência, portabilidade e clareza do código, destacando os desafios encontrados e as soluções propostas.
+
+\section{Leitura dos Dados (Parser)}
+
+\noindent
+\hspace{2em}A leitura dos dados de entrada é uma etapa crucial para o funcionamento da rede neural. O parser é responsável por interpretar os dados brutos e convertê-los em um formato que possa ser utilizado pela rede. A leitura dos pesos da rede foi feita aproveitando o fato de que a quantidade de vetores de uma camada i corresponde ao número de neurônios da camada, e cada vetor contém o número de pesos correspondente ao número de neurônios da camada anterior, segundo o exemplo:
+
+4,10,20,3 \rightarrow 4 camadas:
+\begin{itemize}
+    \item Entrada: 4 neurônios
+    \item Oculta 1: 10 neurônios
+    \item Oculta 2: 20 neurônios
+    \item Saída: 3 neurônios
+\end{itemize}
+
+Logo, as camadas lN tem matriz no formato:
+
+\begin{itemize}
+    \item l1: $[10][4]$
+    \item l2: $[20][10]$
+    \item l3: $[3][20]$
+\end{itemize}
+
+\end{document}
