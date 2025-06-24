@@ -91,18 +91,17 @@ Com os tamanhos dos vetores em mãos, e dado que cada inteiro é separado por v�
   \item Lê os pesos de cada camada, pulando a vírgula entre os números;
 \end{enumerate}
 
-\hspace{2em}Assim, é possível construir as matrizes de pesos de cada camada, armazenando-as em vetores de inteiros com tamanho o suficiente para conter todos os pesos em um vetor unidimensional:
-
+\hspace{2em}Assim, é possível construir as matrizes de pesos de cada camada, armazenando-as em vetores de inteiros com tamanho o suficiente para conter todos os pesos em um vetor unidimensional inicializado com 0's, considerando a maior quantidade de neuronios observada (50):
 
 \begin{lstlisting}[style=meucodigo]
 .data
   # Vetores de pesos para cada camada
-  l1: .space 4           # 4 valores de Entrada
-  l2: .space 120          # 30 * 4 valores de Oculta 1
-  l3: .space 900          # 30 * 30 valores de Oculta 2
-  l4: .space 900          # 30 * 30 valores de Oculta 3
-  l5: .space 900          # 30 * 30 valores de Oculta 4
-  ln: .space 20           # Vetor de tamanhos das camadas
+  arquitetura: .space 20       # 4 valores de Entrada
+  l1: .space 200               # 50 * 4 valores de Oculta 1
+  l2: .space 2500              # 50 * 50 valores de Oculta 2
+  l3: .space 2500              # 50 * 50 valores de Oculta 3
+  l4: .space 2500              # 50 * 50 valores de Oculta 4
+  ln: .space 20                # Vetor de tamanhos das camadas
   saida: .space 3
 \end{lstlisting}
 

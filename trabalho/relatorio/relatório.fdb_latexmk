@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1750688787 "/home/renilson/mc404/trabalho/relatorio/relatório.tex" "relatório.pdf" "relatório" 1750688788
+["pdflatex"] 1750794908 "/home/renilson/mc404/trabalho/relatorio/relatório.tex" "relatório.pdf" "relatório" 1750794908
   "/etc/texmf/web2c/texmf.cnf" 1750684046 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/home/renilson/.texlive2021/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1200.600pk" 1750684859 14040 cc1ac7ac03e38b944614503991403268 ""
   "/home/renilson/.texlive2021/texmf-var/fonts/pk/ljfour/public/cm/cmbx12.864pk" 1750684863 22076 99dc6ec90191f29aa87007989df1b713 ""
@@ -9,7 +9,7 @@
   "/home/renilson/.texlive2021/texmf-var/fonts/pk/ljfour/public/cm/cmsy10.720pk" 1750684862 16448 1c15bd935cdaf7e4f6f002fa1e42ea7c ""
   "/home/renilson/.texlive2021/texmf-var/fonts/pk/ljfour/public/cm/cmtt10.657pk" 1750685332 9784 8c97c3403eb1d7045a8093e9c2074f2f ""
   "/home/renilson/.texlive2021/texmf-var/web2c/pdftex/pdflatex.fmt" 1750684857 1405652 e2b28e5354121aa99297c4cd2fea123c ""
-  "/home/renilson/mc404/trabalho/relatorio/relatório.tex" 1750688787 4198 6a5b8019ac632b8dbad688acb2986e6b ""
+  "/home/renilson/mc404/trabalho/relatorio/relatório.tex" 1750794908 4310 d94a6dd9dbbe1baf87a07569585f5804 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/pk/ljfour/public/cm/dpi600/cmr12.pk" 1136849718 13144 0235be32b099c919a01c28a385c0ff86 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tcrm1200.tfm" 1136768653 1536 74b7293ec3713bb7fdca8dd1bd1f469c ""
@@ -119,8 +119,8 @@
   "/usr/share/texlive/texmf-dist/tex/latex/xcolor/xcolor.sty" 1635798903 56029 3f7889dab51d620aa43177c391b7b190 ""
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1644012257 39432 7155514e09a3d69036fac785183a21c2 ""
   "/usr/share/texmf/web2c/texmf.cnf" 1644012257 39432 7155514e09a3d69036fac785183a21c2 ""
-  "relatório.aux" 1750688788 351 367bfb744717321cc561fa1969c0889b "pdflatex"
-  "relatório.tex" 1750688787 4198 6a5b8019ac632b8dbad688acb2986e6b ""
+  "relatório.aux" 1750794908 351 367bfb744717321cc561fa1969c0889b "pdflatex"
+  "relatório.tex" 1750794908 4310 d94a6dd9dbbe1baf87a07569585f5804 ""
   (generated)
   "relatório.aux"
   "relatório.log"
